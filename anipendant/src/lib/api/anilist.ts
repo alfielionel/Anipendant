@@ -60,6 +60,7 @@ query ($id: Int) {
 const EPISODES_QUERY = `
 query ($id: Int) {
   Media(id: $id) {
+    episodes
     streamingEpisodes {
       title
       thumbnail
@@ -98,24 +99,18 @@ export class AniListAdapter implements AnimeProvider {
         relationType: edge.relationType,
         coverUrl: edge.node.coverImage?.large ?? null,
       })),
-      episodeList: (media.streamingEpisodes ?? []).map((ep: any, i: number) => ({
-        number: i + 1,
-        title: ep.title ?? null,
-        thumbnail: ep.thumbnail ?? null,
-      })),
+      episodeList: generateEpisodeList(media.episodes, media.streamingEpisodes),
     }
   }
 
   async getEpisodes(id: string | number): Promise<AnimeEpisode[]> {
-    const res = await this.fetchGraphQL<{ Media: { streamingEpisodes: any[] } }>(
+    const res = await this.fetchGraphQL<{ Media: { episodes: number; streamingEpisodes: any[] } }>(
       EPISODES_QUERY,
       { id: Number(id) }
     )
-    return (res?.data?.Media?.streamingEpisodes ?? []).map((ep: any, i: number) => ({
-      number: i + 1,
-      title: ep.title ?? null,
-      thumbnail: ep.thumbnail ?? null,
-    }))
+    const media = res?.data?.Media
+    if (!media) return []
+    return generateEpisodeList(media.episodes, media.streamingEpisodes)
   }
 
   private async fetchGraphQL<T>(
@@ -134,6 +129,23 @@ export class AniListAdapter implements AnimeProvider {
 
     return response.json()
   }
+}
+
+/**
+ * Generate the full episode list from the official episode count,
+ * merging in any streaming titles that exist. This ensures all episodes
+ * are imported even when streamingEpisodes only returns a subset.
+ */
+function generateEpisodeList(
+  episodeCount: number | null,
+  streamingEpisodes: { title?: string | null; thumbnail?: string | null }[]
+): AnimeEpisode[] {
+  const count = episodeCount ?? streamingEpisodes.length
+  return Array.from({ length: count }, (_, i) => ({
+    number: i + 1,
+    title: streamingEpisodes[i]?.title ?? null,
+    thumbnail: streamingEpisodes[i]?.thumbnail ?? null,
+  }))
 }
 
 function mapMediaToShow(media: any): AnimeShow {
