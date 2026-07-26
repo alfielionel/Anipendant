@@ -47,6 +47,8 @@ query ($id: Int) {
           title { romaji }
           coverImage { large }
           type
+          format
+          episodes
         }
       }
     }
@@ -58,6 +60,29 @@ query ($id: Int) {
 }`
 
 const EPISODES_QUERY = `
+query ($id: Int) {
+  Media(id: $id) {
+    episodes
+    relations {
+      edges {
+        relationType
+        node {
+          id
+          type
+          format
+          episodes
+        }
+      }
+    }
+    streamingEpisodes {
+      title
+      thumbnail
+    }
+  }
+}`
+
+/** Lightweight query for a single entry — no relations, avoids recursion from sequel merging. */
+const SINGLE_EPISODES_QUERY = `
 query ($id: Int) {
   Media(id: $id) {
     episodes
@@ -89,8 +114,25 @@ export class AniListAdapter implements AnimeProvider {
     const media = res?.data?.Media
     if (!media) throw new Error('Anime not found')
 
+    // Build the base episode list for this entry
+    const baseList = generateEpisodeList(media.episodes, media.streamingEpisodes)
+
+    // Merge episodes from TV-format SEQUEL entries (e.g. R1 + R2 = 50 episodes)
+    const sequelIds = findTvSequels(media.relations?.edges)
+    if (sequelIds.length > 0) {
+      const sequelLists = await Promise.all(
+        sequelIds.map((sid: number) => this.fetchSingleEpisodes(sid))
+      )
+      for (const list of sequelLists) {
+        baseList.push(...list)
+      }
+      // Renumber sequentially across all merged seasons
+      baseList.forEach((ep, i) => { ep.number = i + 1 })
+    }
+
     return {
       ...mapMediaToShow(media),
+      episodes: baseList.length,
       synopsis: media.description ?? null,
       genres: media.genres ?? [],
       relations: (media.relations?.edges ?? []).map((edge: any) => ({
@@ -99,14 +141,40 @@ export class AniListAdapter implements AnimeProvider {
         relationType: edge.relationType,
         coverUrl: edge.node.coverImage?.large ?? null,
       })),
-      episodeList: generateEpisodeList(media.episodes, media.streamingEpisodes),
+      episodeList: baseList,
     }
   }
 
   async getEpisodes(id: string | number): Promise<AnimeEpisode[]> {
-    const res = await this.fetchGraphQL<{ Media: { episodes: number; streamingEpisodes: any[] } }>(
+    const res = await this.fetchGraphQL<{ Media: any }>(
       EPISODES_QUERY,
       { id: Number(id) }
+    )
+    const media = res?.data?.Media
+    if (!media) return []
+
+    const baseList = generateEpisodeList(media.episodes, media.streamingEpisodes)
+
+    // Merge episodes from TV-format SEQUEL entries
+    const sequelIds = findTvSequels(media.relations?.edges)
+    if (sequelIds.length > 0) {
+      const sequelLists = await Promise.all(
+        sequelIds.map((sid: number) => this.fetchSingleEpisodes(sid))
+      )
+      for (const list of sequelLists) {
+        baseList.push(...list)
+      }
+      baseList.forEach((ep, i) => { ep.number = i + 1 })
+    }
+
+    return baseList
+  }
+
+  /** Fetch episodes for a single AniList media entry — no relation traversal. */
+  private async fetchSingleEpisodes(id: number): Promise<AnimeEpisode[]> {
+    const res = await this.fetchGraphQL<{ Media: { episodes: number | null; streamingEpisodes: any[] } }>(
+      SINGLE_EPISODES_QUERY,
+      { id }
     )
     const media = res?.data?.Media
     if (!media) return []
@@ -164,6 +232,21 @@ export function padEpisodeList(
     padded.push({ number: i, title: `Episode ${i}`, thumbnail: null })
   }
   return padded
+}
+
+/**
+ * Find TV-format SEQUEL relations from AniList edges.
+ * These are follow-up seasons that should be merged into the episode list
+ * (e.g. Code Geass R1 + R2 = 50 episodes total).
+ */
+function findTvSequels(edges: any[]): number[] {
+  return (edges ?? [])
+    .filter((e: any) =>
+      e.relationType === 'SEQUEL' &&
+      e.node?.type === 'ANIME' &&
+      e.node?.format === 'TV'
+    )
+    .map((e: any) => e.node.id)
 }
 
 function mapMediaToShow(media: any): AnimeShow {
