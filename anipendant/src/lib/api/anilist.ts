@@ -148,6 +148,24 @@ function generateEpisodeList(
   }))
 }
 
+/**
+ * Pad an episode list to match the expected count from AniList search results.
+ * This ensures that the number of episodes shown on the browse card matches
+ * what actually gets imported into the library.
+ */
+export function padEpisodeList(
+  episodeList: AnimeEpisode[],
+  expectedCount: number | null
+): AnimeEpisode[] {
+  const target = expectedCount ?? episodeList.length
+  if (episodeList.length >= target) return episodeList
+  const padded = [...episodeList]
+  for (let i = episodeList.length + 1; i <= target; i++) {
+    padded.push({ number: i, title: `Episode ${i}`, thumbnail: null })
+  }
+  return padded
+}
+
 function mapMediaToShow(media: any): AnimeShow {
   return {
     id: media.id,

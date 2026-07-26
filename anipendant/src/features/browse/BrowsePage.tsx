@@ -4,6 +4,7 @@ import AnimeCard from '@/features/browse/AnimeCard'
 import { useAnimeApi } from '@/hooks/useAnimeApi'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
+import { padEpisodeList } from '@/lib/api/anilist'
 import type { AnimeShow } from '@/types/database'
 import Loading from '@/components/Loading'
 
@@ -59,7 +60,8 @@ export default function BrowsePage() {
     try {
       const detail = await api.getById(String(show.id))
       if (detail.episodeList && detail.episodeList.length > 0 && newShow) {
-        const episodeRows = detail.episodeList.map(ep => ({
+        const list = padEpisodeList(detail.episodeList, show.episodes)
+        const episodeRows = list.map(ep => ({
           show_id: newShow.id,
           episode_number: ep.number,
           title: ep.title ?? `Episode ${ep.number}`,

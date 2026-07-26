@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useAnimeApi } from '@/hooks/useAnimeApi'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { padEpisodeList } from '@/lib/api/anilist'
 import type { AnimeShowDetail } from '@/types/database'
 import Loading from '@/components/Loading'
 
@@ -60,7 +61,8 @@ export default function AnimeDetail() {
 
     // Auto-add all episodes (no mirrors yet — user adds links manually)
     if (detail.episodeList && detail.episodeList.length > 0 && show) {
-      const episodeRows = detail.episodeList.map(ep => ({
+      const list = padEpisodeList(detail.episodeList, detail.episodes)
+      const episodeRows = list.map(ep => ({
         show_id: show.id,
         episode_number: ep.number,
         title: ep.title ?? `Episode ${ep.number}`,
