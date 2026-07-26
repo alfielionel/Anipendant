@@ -30,7 +30,7 @@ export default function ShowsPage() {
       ) : (
         <div className="anime-grid">
           {shows.map(show => (
-            <ShowCard key={show.id} show={show} />
+            <ShowCard key={show.id} show={show} onDelete={(id) => setShows(prev => prev.filter(s => s.id !== id))} />
           ))}
         </div>
       )}

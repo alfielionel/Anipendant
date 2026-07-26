@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import type { Show } from '@/types/database'
 import CardMenu from '@/components/CardMenu'
@@ -8,10 +8,10 @@ import ConfirmDeleteModal from '@/components/ConfirmDeleteModal'
 
 interface ShowCardProps {
   show: Show
+  onDelete?: (showId: string) => void
 }
 
-export default function ShowCard({ show }: ShowCardProps) {
-  const navigate = useNavigate()
+export default function ShowCard({ show, onDelete }: ShowCardProps) {
   const [editing, setEditing] = useState(false)
   const [currentShow, setCurrentShow] = useState(show)
   const [deleting, setDeleting] = useState(false)
@@ -26,8 +26,8 @@ export default function ShowCard({ show }: ShowCardProps) {
       )
       await supabase.from('episodes').delete().eq('show_id', show.id)
       await supabase.from('shows').delete().eq('id', show.id)
+      onDelete?.(show.id)
       setConfirmDelete(false)
-      navigate('/shows', { replace: true })
     } catch (err) {
       console.error('Delete failed:', err)
       setDeleting(false)
