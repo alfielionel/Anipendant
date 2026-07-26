@@ -45,7 +45,7 @@ export default function CardMenu({ items, children }: CardMenuProps) {
               key={i}
               type="button"
               className={`card-menu-item${item.danger ? ' card-menu-item-danger' : ''}`}
-              onClick={() => { setOpen(false); item.onClick() }}
+              onClick={e => { e.stopPropagation(); e.preventDefault(); setOpen(false); item.onClick() }}
             >
               {item.icon && <span className="card-menu-icon">{item.icon}</span>}
               {item.label}

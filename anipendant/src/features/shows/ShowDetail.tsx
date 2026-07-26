@@ -52,13 +52,18 @@ export default function ShowDetail() {
   async function handleDelete() {
     if (!show) return
     setDeleting(true)
-    await supabase.from('episode_mirrors').delete().in(
-      'episode_id',
-      (await supabase.from('episodes').select('id').eq('show_id', show.id)).data?.map(e => e.id) ?? []
-    )
-    await supabase.from('episodes').delete().eq('show_id', show.id)
-    await supabase.from('shows').delete().eq('id', show.id)
-    navigate('/shows', { replace: true })
+    try {
+      await supabase.from('episode_mirrors').delete().in(
+        'episode_id',
+        (await supabase.from('episodes').select('id').eq('show_id', show.id)).data?.map(e => e.id) ?? []
+      )
+      await supabase.from('episodes').delete().eq('show_id', show.id)
+      await supabase.from('shows').delete().eq('id', show.id)
+      navigate('/shows', { replace: true })
+    } catch (err) {
+      console.error('Delete failed:', err)
+      setDeleting(false)
+    }
   }
 
   function handleEpisodeAdded() {
