@@ -86,10 +86,6 @@ const SINGLE_EPISODES_QUERY = `
 query ($id: Int) {
   Media(id: $id) {
     episodes
-    streamingEpisodes {
-      title
-      thumbnail
-    }
   }
 }`
 
@@ -170,15 +166,18 @@ export class AniListAdapter implements AnimeProvider {
     return baseList
   }
 
-  /** Fetch episodes for a single AniList media entry — no relation traversal. */
+  /** Fetch episodes for a single AniList media entry — no relation traversal, no streamingEpisodes (unreliable for sequels). */
   private async fetchSingleEpisodes(id: number): Promise<AnimeEpisode[]> {
-    const res = await this.fetchGraphQL<{ Media: { episodes: number | null; streamingEpisodes: any[] } }>(
+    const res = await this.fetchGraphQL<{ Media: { episodes: number | null } }>(
       SINGLE_EPISODES_QUERY,
       { id }
     )
-    const media = res?.data?.Media
-    if (!media) return []
-    return generateEpisodeList(media.episodes, media.streamingEpisodes)
+    const count = res?.data?.Media?.episodes ?? 0
+    return Array.from({ length: count }, (_, i) => ({
+      number: i + 1,
+      title: `Episode ${i + 1}`,
+      thumbnail: null,
+    }))
   }
 
   private async fetchGraphQL<T>(
