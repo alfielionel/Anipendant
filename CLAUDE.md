@@ -1,0 +1,1 @@
+Build using Vite, React, TypeScript, and when adding functionality use Vitest. Make sure to use Vitest when adding new functionality, to guarantee that it functions. In terms of the external APIs being used, perform tests during plan mode to ensure that they all work as intended.

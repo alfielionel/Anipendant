@@ -1,0 +1,160 @@
+/* ===== Frutiger Aero / 2010 Mac Design System ===== */
+
+:root {
+  /* Colors */
+  --accent: #007aff;
+  --accent-hover: #0055cc;
+  --accent-light: #5ac8fa;
+  --accent-bg: rgba(0, 122, 255, 0.1);
+  --accent-border: rgba(0, 122, 255, 0.35);
+
+  --text: #6e6e73;
+  --text-h: #1d1d1f;
+  --text-on-accent: #fff;
+
+  --bg: #e8edf3;
+  --surface: rgba(255, 255, 255, 0.82);
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --border: rgba(0, 0, 0, 0.08);
+  --code-bg: rgba(255, 255, 255, 0.65);
+
+  --success: #34c759;
+  --danger: #ff3b30;
+  --warning: #ff9500;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+  /* Glass effect mixin via variables */
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  /* Elastic jelly timing curve — overshoots slightly for playful bounce */
+  --jelly: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Fonts: Cute rounded Nunito + Mac mono */
+  --sans: 'Nunito', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --heading: 'Nunito', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+
+  /* Base typography */
+  font: 16px/1.55 var(--sans);
+  letter-spacing: 0.15px;
+  color-scheme: light;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 15px;
+  }
+}
+
+/* ===== Background: Dot-grid pattern over gradient ===== */
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.04) 1px, transparent 0);
+  background-size: 18px 18px;
+  background-color: var(--bg);
+  background-attachment: fixed;
+}
+
+/* ===== Scrollbar (WebKit only, Mac-style) ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+/* ===== Root container ===== */
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ===== Typography ===== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading);
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+h1 {
+  font-size: 2rem;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+
+  @media (max-width: 1024px) {
+    font-size: 1.6rem;
+  }
+}
+
+h2 {
+  font-size: 1.35rem;
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+  margin-bottom: 0.5rem;
+
+  @media (max-width: 1024px) {
+    font-size: 1.2rem;
+  }
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--code-bg);
+  color: var(--text-h);
+}
+
+/* ===== Selection color (Mac aqua) ===== */
+::selection {
+  background: rgba(0, 122, 255, 0.25);
+  color: var(--text-h);
+}
